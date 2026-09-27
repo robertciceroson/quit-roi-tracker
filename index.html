@@ -168,7 +168,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
   const isoDay = (d) => { const z = new Date(d); z.setMinutes(z.getMinutes() - z.getTimezoneOffset()); return z.toISOString().slice(0, 10); };
   const fresh = () => ({
     setup: false, habit: 'cig', priceId: 'US', customPrice: 10, packs: 1, drinks: 3, drinkPrice: 8,
-    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500, investRate: 8, lastBackup: 0,
+    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Vacation', goalCustom: false, goalAmt: 500, investRate: 8, lastBackup: 0,
     events: [], offsetDays: 0, tasks: {}, tab: 'today', toast: null, fb: null, fbText: ''
   });
 
@@ -255,6 +255,25 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
       <output>${val}</output>
       <button type="button" data-step="${key}" data-dir="1" aria-label="Increase ${label}">+</button></div></div>`;
 
+  const GOAL_PRESETS = ['Vacation', 'Family trip', 'Buying a car', 'Down payment for a home', 'Retirement'];
+  function goalFields() {
+    const preset = !S.goalCustom && GOAL_PRESETS.includes(S.goalName);
+    return `<label class="field" for="goalPick">Saving toward
+        <select id="goalPick">${GOAL_PRESETS.map((g) => `<option value="${g}" ${preset && S.goalName === g ? 'selected' : ''}>${g}</option>`).join('')}
+          <option value="__custom" ${preset ? '' : 'selected'}>Something else (type your own)</option></select></label>
+      ${preset ? '' : `<label class="field" for="goalName">Name your goal<input id="goalName" type="text" maxlength="40" placeholder="For example: Wedding fund" value="${esc(S.goalName)}" data-input="goalName"></label>`}
+      <label class="field" for="goalAmt">Goal amount ($)<input id="goalAmt" type="number" inputmode="decimal" min="1" step="1" value="${esc(S.goalAmt)}" data-input="goalAmt"></label>`;
+  }
+  let goalBackup = null;
+  function goalSheet() {
+    overlay(`<div class="sheet" id="goalSheet" style="text-align:left;align-items:stretch">
+      <h2>Change your savings goal</h2>
+      <p class="muted">Pick what your quit money is going toward. Your savings and streak stay the same.</p>
+      ${goalFields()}
+      <button type="button" class="btn" data-action="goalSave">Save goal</button>
+      <button type="button" class="btn ghost" data-action="goalCancel">Cancel</button></div>`);
+  }
+
   function viewSetup() {
     const c = calc();
     return `
@@ -286,10 +305,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <input id="extras" type="number" inputmode="decimal" min="0" step="1" value="${esc(S.extrasMonthly)}" data-input="extrasMonthly">
         <span class="hint">Tobacco insurance surcharge, lighters, rides home, dental cleanings. Leave at 0 if unsure.</span>
       </label>
-      <div class="grid2">
-        <label class="field" for="goalName">Saving toward<input id="goalName" type="text" maxlength="40" value="${esc(S.goalName)}" data-input="goalName"></label>
-        <label class="field" for="goalAmt">Goal amount ($)<input id="goalAmt" type="number" inputmode="decimal" min="1" step="1" value="${esc(S.goalAmt)}" data-input="goalAmt"></label>
-      </div>
+      ${goalFields()}
       <div class="panel" style="background:var(--accent-soft);border-color:transparent">
         <span class="small muted">At this pace you keep</span>
         <span class="num" style="font-size:34px">${money0(c.daily * 365)} a year</span>
@@ -308,7 +324,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     return `
       <div class="row" style="justify-content:space-between">
         <span class="eyebrow">${c.future ? 'Quit day ahead' : c.cig ? `Day ${c.streakDays + 1} smoke-free` : `Day ${c.streakDays + 1} alcohol-free`}</span>
-        <button type="button" class="linkbtn" data-action="edit">Edit setup</button>
+        <button type="button" class="btn ghost small" data-action="edit" style="min-height:44px;padding:0 16px">Edit setup</button>
       </div>
       <div class="hero">
         <span class="muted">You've kept</span>
@@ -326,6 +342,8 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <div class="row" style="justify-content:space-between;align-items:baseline"><h3>${esc(S.goalName)}</h3><span class="num">${c.pct}%</span></div>
         <div class="bar" role="progressbar" aria-valuenow="${c.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progress toward ${esc(S.goalName)}"><span style="width:${c.pct}%"></span></div>
         <span class="small muted">${c.pct >= 100 ? 'Goal reached. Time to spend it on yourself.' : money(Math.max(0, S.goalAmt - c.saved)) + ' to go of ' + money0(S.goalAmt) + '. ' + goalEta(c)}</span>
+        <button type="button" class="btn ghost" data-action="goalOpen" style="margin-top:4px">Change my savings goal</button>
+        <span class="small muted" style="text-align:center">Click here to change what you're saving toward. Your savings and streak stay the same.</span>
       </div>
       ${c.cig ? `<div class="panel"><span class="stat"><span class="label">Next health milestone</span></span>
         <span>${next ? `<strong>${next.when}:</strong> ${next.text}` : 'You have reached every milestone listed.'}</span>
@@ -651,6 +669,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     const a = b.dataset.action;
     if (a === 'finishSetup') {
       if (!S.quitDate) { alertField('quitDate', 'Choose a quit date.'); return; }
+      if (!String(S.goalName || '').trim()) S.goalName = 'My goal';
       S.setup = true; S.tab = 'today'; done('setup'); render(); window.scrollTo(0, 0);
     } else if (a === 'edit') { S.tab = 'setup'; render(); window.scrollTo(0, 0); }
     else if (a === 'craving') { openCoach(); }
@@ -678,6 +697,15 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <button type="button" class="btn ghost" data-action="closeCoach">Keep my data</button></div>`);
     } else if (a === 'resetYes') { overlay(''); S = fresh(); render(); window.scrollTo(0, 0); }
     else if (a === 'backupOpen') { backupSheet(); }
+    else if (a === 'goalOpen') { goalBackup = { goalName: S.goalName, goalAmt: S.goalAmt, goalCustom: S.goalCustom }; goalSheet(); }
+    else if (a === 'goalCancel') { if (goalBackup) Object.assign(S, goalBackup); goalBackup = null; overlay(''); render(); }
+    else if (a === 'goalSave') {
+      if (!String(S.goalName || '').trim()) S.goalName = 'My goal';
+      if (!(Number(S.goalAmt) > 0)) S.goalAmt = 500;
+      goalBackup = null; overlay('');
+      S.toast = { kind: 'win', text: 'Goal updated: ' + S.goalName + ', ' + money0(S.goalAmt) + '.' };
+      render();
+    }
     else if (a === 'restoreOpen') { restoreSheet(); }
     else if (a === 'saveBackupFile') {
       const m = document.getElementById('backupMsg');
@@ -731,7 +759,17 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
       if (p && (!S.setup || S.tab === 'setup')) { p.textContent = money0(c.daily * 365) + ' a year'; const s = p.nextElementSibling; if (s) s.textContent = money(c.daily) + ' a day'; const e = document.getElementById('etaLine'); if (e) e.textContent = S.goalName + ': ' + goalEta(c); }
     }
   });
-  document.addEventListener('change', (ev) => { if (ev.target.dataset.input === 'priceId') render(); });
+  document.addEventListener('change', (ev) => {
+    if (ev.target.dataset.input === 'priceId') { render(); return; }
+    if (ev.target.id === 'goalPick') {
+      const v = ev.target.value;
+      if (v === '__custom') { S.goalCustom = true; if (GOAL_PRESETS.includes(S.goalName)) S.goalName = ''; }
+      else { S.goalCustom = false; S.goalName = v; }
+      save();
+      if (document.getElementById('goalSheet')) goalSheet(); else render();
+      const g = document.getElementById(v === '__custom' ? 'goalName' : 'goalPick'); if (g) g.focus();
+    }
+  });
 
   document.addEventListener('submit', (ev) => {
     if (ev.target.id !== 'fbForm') return;
