@@ -158,7 +158,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
   const isoDay = (d) => { const z = new Date(d); z.setMinutes(z.getMinutes() - z.getTimezoneOffset()); return z.toISOString().slice(0, 10); };
   const fresh = () => ({
     setup: false, habit: 'cig', priceId: 'US', customPrice: 10, packs: 1, drinks: 3, drinkPrice: 8,
-    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500,
+    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500, investRate: 8,
     events: [], offsetDays: 0, tasks: {}, tab: 'today', toast: null, fb: null, fbText: ''
   });
 
@@ -204,6 +204,12 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         slips: weekSlips
       }
     };
+  }
+
+  // Future value of saving the daily amount, deposited monthly, at an annual return compounded monthly
+  function fv(daily, ratePct, years) {
+    const m = daily * 365 / 12, n = years * 12, r = ratePct / 100 / 12;
+    return r === 0 ? m * n : m * (Math.pow(1 + r, n) - 1) / r;
   }
 
   function goalEta(c) {
@@ -296,6 +302,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <span class="muted">You've kept</span>
         <span class="num big">${money(c.saved)}</span>
         <span class="muted small">${money(c.daily)} a day · ${money0(c.daily * 365)} a year at this pace</span>
+        <span class="small" style="color:var(--accent);font-weight:600">Invested at ${S.investRate}% a year: about ${money0(fv(c.daily, S.investRate, 10))} in 10 years</span>
       </div>
       ${t ? `<div class="toast ${t.kind === 'slip' ? 'slipnote' : ''}" role="status">${esc(t.text)}</div>` : ''}
       <div class="grid2">
@@ -357,7 +364,14 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         ${lines.map(([l, v]) => `<div class="line"><span>${esc(l)}</span><span class="num" style="font-weight:600">${v}</span></div>`).join('')}
         <div class="line total"><span><strong>Projected 1-year return</strong></span><span class="num" style="font-size:22px;color:var(--accent)">${money0(c.daily * 365)}</span></div>
       </div></div>
-      <p class="small muted">Estimates: 6 minutes per cigarette, 15 minutes per drink. A slip subtracts one day of your usual spend. Pack prices are 2026 state averages unless you entered your own.</p>`;
+      <p class="small muted">Estimates: 6 minutes per cigarette, 15 minutes per drink. A slip subtracts one day of your usual spend. Pack prices are 2026 state averages unless you entered your own.</p>
+      <div class="stack" style="gap:4px;margin-top:8px"><span class="eyebrow">If you invested it</span><h2>What your savings could grow to</h2></div>
+      ${stepper('Annual return', 'investRate', S.investRate + '%', 'Change the rate to compare')}
+      <div class="panel"><div class="ledger">
+        <div class="line small muted"><span>Years</span><span style="display:flex;gap:16px"><span style="min-width:92px;text-align:right">You put in</span><span style="min-width:104px;text-align:right">Could grow to</span></span></div>
+        ${[1, 5, 10, 20, 30].map((y) => `<div class="line"><span>${y} ${y === 1 ? 'year' : 'years'}</span><span style="display:flex;gap:16px"><span class="muted" style="min-width:92px;text-align:right">${money0(c.daily * 365 * y)}</span><span class="num" style="min-width:104px;text-align:right;${y === 30 ? 'color:var(--accent);font-size:20px' : 'font-weight:600'}">${money0(fv(c.daily, S.investRate, y))}</span></span></div>`).join('')}
+      </div></div>
+      <p class="small muted">Illustration only, not financial advice. Assumes you save ${money(c.daily)} a day, deposit it monthly, and earn a steady ${S.investRate}% a year compounded monthly, before taxes, fees and inflation. Real returns vary and can be negative.</p>`;
   }
 
   function viewTest() {
@@ -464,7 +478,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     if (b.dataset.set) { S[b.dataset.set] = b.dataset.val; render(); return; }
     if (b.dataset.step) {
       const k = b.dataset.step, d = Number(b.dataset.dir);
-      const lim = { packs: [0.5, 4, 0.5], drinks: [1, 20, 1], drinkPrice: [1, 30, 1] }[k];
+      const lim = { packs: [0.5, 4, 0.5], drinks: [1, 20, 1], drinkPrice: [1, 30, 1], investRate: [0, 12, 1] }[k];
       S[k] = Math.min(lim[1], Math.max(lim[0], Math.round((S[k] + d * lim[2]) * 10) / 10));
       render(); return;
     }
