@@ -6,11 +6,12 @@ This is the **user-testing version**. It runs entirely in the browser as a singl
 
 ## Features
 
-- **Setup:** cigarettes, alcohol or both; 2026 state-average pack prices or your own price; packs or drinks per day; quit date; hidden monthly costs; a named savings goal
-- **Today:** money kept, dollars per day and per year, hours back, cravings beaten, goal progress, next health milestone
+- **Setup:** cigarettes, alcohol or both; 2026 state-average pack prices or your own price; packs or drinks per day; quit date and time of your last one; hidden monthly costs; a savings goal and amount
+- **Savings goals:** pick Vacation, Family trip, Buying a car, Down payment for a home or Retirement, or type your own; change it any time from the goal card on Today without affecting your savings or streak
+- **Today:** money kept, dollars per day and per year, hours back, cravings beaten, goal progress with time to goal, next health milestone
 - **Craving coach:** a 60-second guided breathing timer, then log "I beat it" or "I slipped"
 - **Slips without shame:** a slip restarts the streak but keeps lifetime savings
-- **Health:** a smoking-recovery milestone timeline with countdowns
+- **Health:** 10 smoking-recovery milestones with countdowns, from minutes to 20 years, with cited sources
 - **History:** every craving and slip, with optional triggers, plus free support lines
 - **Weekly ROI statement:** this week's return, the projected 1-year return, and a plain-language "How we calculate this" box
 - **If you invested it:** what the savings could grow to over 1–30 years at an adjustable annual return
