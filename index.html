@@ -346,6 +346,27 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
       </div>`;
   }
 
+  function howCalc(c) {
+    const minsPerDay = (c.cig ? S.packs * 20 * 6 : 0) + (c.alc ? S.drinks * 15 : 0);
+    const perDay = minsPerDay >= 90 ? (Math.round(minsPerDay / 6) / 10) + ' hours' : Math.round(minsPerDay) + ' minutes';
+    const amount = [c.cig ? `${S.packs} ${S.packs === 1 ? 'pack' : 'packs'}` : '', c.alc ? `${S.drinks} ${S.drinks === 1 ? 'drink' : 'drinks'}` : ''].filter(Boolean).join(' and ');
+    const unit = [c.cig ? 'about 6 minutes per cigarette' : '', c.alc ? 'about 15 minutes per drink' : ''].filter(Boolean).join(' and ');
+    const pr = PRICES.find((x) => x.id === S.priceId);
+    const priceLine = S.priceId === 'custom'
+      ? `Your pack price is the ${money(c.packPrice)} you entered.`
+      : `Your pack price is the 2026 ${pr.id === 'US' ? 'U.S.' : pr.name} average of ${money(c.packPrice)}. To use what you actually pay, tap Edit setup on Today and choose "My own price."`;
+    const items = [
+      `<li><strong>Hours back:</strong> we estimate ${unit}, including stepping away and coming back. At ${amount} a day, that's about ${perDay} a day you get back.</li>`,
+      `<li><strong>Slips:</strong> logging a slip subtracts one day of your usual spending (${money(c.habitDaily)}), because on a slip day you likely bought what you normally would. Your streak and health clock restart, but the rest of your savings stays.</li>`,
+      c.cig ? `<li><strong>Prices:</strong> ${priceLine}</li>` : '',
+      c.alc ? `<li><strong>Drink price:</strong> ${money(S.drinkPrice)} per drink, as you set it.</li>` : ''
+    ].join('');
+    return `<div class="panel" style="background:var(--sunk);border-color:transparent;gap:8px">
+        <h3>How we calculate this</h3>
+        <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5">${items}</ul>
+      </div>`;
+  }
+
   function viewReport() {
     const c = calc();
     const lines = [
@@ -366,7 +387,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
           : `<div class="line"><span>${esc(l)}</span><span class="num" style="font-weight:600">${v}</span></div>`).join('')}
         <div class="line total"><span><strong>Projected 1-year return</strong></span><span class="num" style="font-size:22px;color:var(--accent)">${money0(c.daily * 365)}</span></div>
       </div></div>
-      <p class="small muted">Estimates: 6 minutes per cigarette, 15 minutes per drink. A slip subtracts one day of your usual spend. Pack prices are 2026 state averages unless you entered your own.</p>
+      ${howCalc(c)}
       <div class="stack" style="gap:4px;margin-top:8px"><span class="eyebrow">If you invested it</span><h2>What your savings could grow to</h2></div>
       ${stepper('Annual return', 'investRate', S.investRate + '%', 'Change the rate to compare')}
       <div class="panel"><div class="ledger">
