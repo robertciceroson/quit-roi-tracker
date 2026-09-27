@@ -350,9 +350,9 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     const c = calc();
     const lines = [
       [c.elapsed < 7 ? 'Money kept since you quit' : 'Money kept this week', money(c.week.saved)],
-      ['Hours back this week', Math.round(c.week.hours) + ' hrs'],
-      ['Cravings beaten this week', c.week.cravings],
-      ['Slips this week', c.week.slips],
+      [c.elapsed < 7 ? 'Hours back since you quit' : 'Hours back this week', Math.round(c.week.hours) + ' hrs'],
+      [c.elapsed < 7 ? 'Cravings beaten since you quit' : 'Cravings beaten this week', c.week.cravings],
+      [c.elapsed < 7 ? 'Slips since you quit' : 'Slips this week', c.week.slips],
       ['Lifetime saved', money(c.saved)],
       ['Toward ' + S.goalName, c.pct + '%']
     ];
@@ -361,7 +361,9 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     return `
       <div class="stack" style="gap:4px"><span class="eyebrow">Weekly ROI statement</span><h2>${f(start) === f(end) ? f(end) : f(start) + ' – ' + f(end)}</h2></div>
       <div class="panel"><div class="ledger">
-        ${lines.map(([l, v]) => `<div class="line"><span>${esc(l)}</span><span class="num" style="font-weight:600">${v}</span></div>`).join('')}
+        ${lines.map(([l, v], i) => i === 0
+          ? `<div class="line"><span style="font-weight:700;color:var(--accent)">${esc(l)}</span><span class="num" style="color:var(--accent)">${v}</span></div>`
+          : `<div class="line"><span>${esc(l)}</span><span class="num" style="font-weight:600">${v}</span></div>`).join('')}
         <div class="line total"><span><strong>Projected 1-year return</strong></span><span class="num" style="font-size:22px;color:var(--accent)">${money0(c.daily * 365)}</span></div>
       </div></div>
       <p class="small muted">Estimates: 6 minutes per cigarette, 15 minutes per drink. A slip subtracts one day of your usual spend. Pack prices are 2026 state averages unless you entered your own.</p>
