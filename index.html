@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Quit ROI Tracker: see what quitting smoking or drinking is worth in dollars, hours and health.">
 <meta name="theme-color" content="#0E6650">
+<meta name="author" content="Robert Son">
+<!-- Copyright (c) 2026 Robert Son. All rights reserved. No license is granted to copy, modify or redistribute this code. -->
 <title>Quit ROI Tracker</title>
 <style>
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -342,7 +344,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <div class="row" style="justify-content:space-between;align-items:baseline"><h3>${esc(S.goalName)}</h3><span class="num">${c.pct}%</span></div>
         <div class="bar" role="progressbar" aria-valuenow="${c.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progress toward ${esc(S.goalName)}"><span style="width:${c.pct}%"></span></div>
         <span class="small muted">${c.pct >= 100 ? 'Goal reached. Time to spend it on yourself.' : money(Math.max(0, S.goalAmt - c.saved)) + ' to go of ' + money0(S.goalAmt) + '. ' + goalEta(c)}</span>
-        <button type="button" class="btn ghost" data-action="goalOpen" style="margin-top:4px">Change my savings goal</button>
+        <button type="button" class="btn" data-action="goalOpen" style="margin-top:4px">Change my savings goal</button>
         <span class="small muted" style="text-align:center">Click here to change what you're saving toward. Your savings and streak stay the same.</span>
       </div>
       ${c.cig ? `<div class="panel"><span class="stat"><span class="label">Next health milestone</span></span>
@@ -543,7 +545,8 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
   function footer() {
     return `<div class="row small muted" style="justify-content:center;gap:4px;flex-wrap:wrap">
       <button type="button" class="linkbtn" data-action="openPage" data-page="privacy">Privacy policy</button><span aria-hidden="true">·</span>
-      <button type="button" class="linkbtn" data-action="openPage" data-page="terms">Terms of use</button></div>`;
+      <button type="button" class="linkbtn" data-action="openPage" data-page="terms">Terms of use</button></div>
+      <p class="small muted" style="text-align:center">© 2026 Robert Son. All rights reserved.</p>`;
   }
   const sec = (h, body) => `<section class="stack" style="gap:6px"><h3>${h}</h3>${body}</section>`;
   const para = (t) => `<p style="font-size:15px;line-height:1.55">${t}</p>`;
@@ -589,6 +592,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         'Do not misuse the app, try to break it or use it for anything unlawful.'
       ]))}
       ${sec('Support resources', para('Quitline: 1-800-QUIT-NOW (1-800-784-8669). SAMHSA National Helpline: 1-800-662-4357. These services are run by others; we are not affiliated with them.'))}
+      ${sec('Ownership', para('The app, including its code, design, text and calculations, is © 2026 Robert Son. All rights reserved. You may use the app for your own personal, non-commercial purposes. You may not copy, modify, redistribute, resell or build a competing product from any part of it without written permission.'))}
       ${sec('Limitation of liability', para('To the fullest extent allowed by law, the app’s owner is not liable for any indirect, incidental or consequential damages, or for any loss of data, arising from your use of the app.'))}
       ${sec('Changes and contact', para('We may update these terms and will change the effective date when we do. These terms are governed by the laws of the Commonwealth of Virginia. Questions: ' + esc(CONTACT) + '.'))}
     </div>` + footer();
