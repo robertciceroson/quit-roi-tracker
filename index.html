@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Quit ROI Tracker: see what quitting smoking or drinking is worth in dollars, hours and health.">
+<meta name="theme-color" content="#0E6650">
+<title>Quit ROI Tracker</title>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EDF2EF; --surface:#FFFFFF; --sunk:#E2E9E5; --ink:#12201B; --muted:#4F5F58;
+  --line:#CFD9D4; --accent:#0E6650; --accent-ink:#FFFFFF; --accent-soft:#D6EBE3;
+  --slip:#9A4F00; --slip-soft:#F6E6D3; --focus:#1D7FD1;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0E1613; --surface:#16211D; --sunk:#1D2A25; --ink:#E4EEE9; --muted:#9DB0A8;
+    --line:#2C3B35; --accent:#4CC29E; --accent-ink:#06231A; --accent-soft:#173A30;
+    --slip:#F0A95A; --slip-soft:#3A2A17; --focus:#7DB9EE;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0E1613; --surface:#16211D; --sunk:#1D2A25; --ink:#E4EEE9; --muted:#9DB0A8;
+  --line:#2C3B35; --accent:#4CC29E; --accent-ink:#06231A; --accent-soft:#173A30;
+  --slip:#F0A95A; --slip-soft:#3A2A17; --focus:#7DB9EE;
+}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding-inline:16px}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.app{max-width:460px;margin:0 auto;padding-block:20px 110px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-0.01em}
+h1{font-size:30px;line-height:1.1;font-weight:700}
+h2{font-size:24px;line-height:1.15;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums;font-weight:700}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:12px;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.btn{min-height:50px;border-radius:14px;border:1px solid transparent;padding:0 18px;font-weight:600;font-size:16px;cursor:pointer;background:var(--accent);color:var(--accent-ink);width:100%}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--ink);font-weight:500}
+.btn.slip{background:transparent;border-color:var(--slip);color:var(--slip)}
+.btn.small{min-height:44px;width:auto;font-size:14px}
+.linkbtn{background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;min-height:44px;padding:0 4px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:15px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+.field input,.field select,.field textarea{min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:10px 12px;font-weight:400;font-size:16px;width:100%}
+.field textarea{min-height:84px;resize:vertical}
+.field .hint{font-weight:400;color:var(--muted);font-size:13px}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 14px}
+.stepper .ctl{display:flex;align-items:center;gap:10px}
+.stepper button{width:44px;height:44px;border-radius:11px;border:1px solid var(--line);background:var(--sunk);cursor:pointer;font-size:20px}
+.stepper output{min-width:44px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.hero{display:flex;flex-direction:column;gap:4px;padding-block:6px}
+.hero .big{font-size:clamp(46px,14vw,64px);line-height:1}
+.stat .label{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.stat .val{font-size:28px}
+.bar{height:12px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.bar > span{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .4s ease}
+.toast{background:var(--accent-soft);border-radius:14px;padding:12px 14px;font-size:15px}
+.toast.slipnote{background:var(--slip-soft)}
+.ms{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.ms:last-child{border-bottom:none}
+.dot{flex-shrink:0;width:26px;height:26px;border-radius:13px;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;font-weight:700;color:transparent;margin-top:2px}
+.ms.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ledger{display:flex;flex-direction:column}
+.ledger .line{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.ledger .line:last-child{border-bottom:none}
+.ledger .total{border-top:2px solid var(--ink);border-bottom:none;padding-top:14px;margin-top:4px}
+.ev{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:none}
+.tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft)}
+.tag.slip{background:var(--slip-soft);color:var(--slip)}
+.task{display:flex;gap:10px;align-items:center;padding:8px 0}
+.task .dot{width:22px;height:22px;margin:0}
+.task.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.task.done span.t{color:var(--muted);text-decoration:line-through}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));z-index:5}
+nav.tabs button{min-height:52px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted)}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(6,14,11,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.sheet{background:var(--surface);border-radius:22px;padding:24px 20px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+.breath{width:150px;height:150px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;position:relative}
+.breath::before{content:"";position:absolute;inset:18px;border-radius:50%;background:var(--accent);opacity:.9;animation:breathe 10s ease-in-out infinite}
+.breath span{position:relative;color:var(--accent-ink);font-weight:700;font-size:26px;font-family:var(--display);font-variant-numeric:tabular-nums}
+@keyframes breathe{0%{transform:scale(.55)}40%{transform:scale(1)}100%{transform:scale(.55)}}
+@media (prefers-reduced-motion: reduce){.breath::before{animation:none;transform:scale(.8)}.bar > span{transition:none}}
+.copybox{width:100%;min-height:180px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);padding:10px}
+.banner{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--muted)}
+fieldset{border:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app" id="app" aria-live="polite"></div>
+<nav class="tabs" id="tabs" aria-label="Main" hidden></nav>
+<div id="overlay"></div>
+
+<script>
+(() => {
+  const KEY = 'quitroi.v1';
+  const FEEDBACK_TO = 'rson226@gmail.com';
+  const DAY = 864e5;
+  // 2026 state average pack prices (World Population Review, Jan 2026)
+  const PRICES = [
+    { id: 'US', name: 'U.S. average', p: 10.15 },
+    { id: 'MO', name: 'Missouri', p: 8.01 },
+    { id: 'CA', name: 'California', p: 11.78 },
+    { id: 'NY', name: 'New York', p: 14.83 },
+    { id: 'custom', name: 'My own price' }
+  ];
+  const MILESTONES = [
+    { h: 1/3, when: '20 minutes', text: 'Heart rate and blood pressure begin to drop.' },
+    { h: 12, when: '12 hours', text: 'Carbon monoxide in the blood returns to normal.' },
+    { h: 24*14, when: '2 weeks to 3 months', text: 'Circulation and lung function start to improve.' },
+    { h: 24*30, when: '1 to 9 months', text: 'Coughing and shortness of breath ease.' },
+    { h: 24*365, when: '1 year', text: 'Added risk of heart disease is about half that of a smoker.' },
+    { h: 24*365*5, when: '5 years', text: 'Stroke risk keeps falling toward that of a non-smoker.' }
+  ];
+  const TASKS = [
+    ['setup', 'Set up your habit and quit date'],
+    ['craving', 'Use the craving coach and log a craving'],
+    ['slip', 'Log a slip and see what happens'],
+    ['health', 'Check your health milestones'],
+    ['report', 'Read your weekly ROI statement'],
+    ['skip', 'Skip ahead in time with the tester tools'],
+    ['feedback', 'Send your feedback']
+  ];
+
+  const isoDay = (d) => { const z = new Date(d); z.setMinutes(z.getMinutes() - z.getTimezoneOffset()); return z.toISOString().slice(0, 10); };
+  const fresh = () => ({
+    setup: false, habit: 'cig', priceId: 'US', customPrice: 10, packs: 1, drinks: 3, drinkPrice: 8,
+    quitDate: isoDay(Date.now()), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500,
+    events: [], offsetDays: 0, tasks: {}, tab: 'today', toast: null, fb: null, fbText: ''
+  });
+
+  let S;
+  try { S = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = fresh(); }
+  let storageOk = true;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { storageOk = false; } };
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = (n) => '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money0 = (n) => '$' + Math.round(n).toLocaleString('en-US');
+  const now = () => Date.now() + S.offsetDays * DAY;
+  const done = (k) => { if (!S.tasks[k]) { S.tasks[k] = true; } };
+
+  function calc() {
+    const cig = S.habit !== 'alc', alc = S.habit !== 'cig';
+    const pr = PRICES.find((x) => x.id === S.priceId);
+    const packPrice = S.priceId === 'custom' ? Number(S.customPrice) || 0 : pr.p;
+    const habitDaily = (cig ? S.packs * packPrice : 0) + (alc ? S.drinks * S.drinkPrice : 0);
+    const daily = habitDaily + (Number(S.extrasMonthly) || 0) * 12 / 365;
+    const quitTs = new Date(S.quitDate + 'T00:00:00').getTime();
+    const t = now();
+    const elapsed = Math.max(0, (t - quitTs) / DAY);
+    const slips = S.events.filter((e) => e.type === 'slip' && e.ts >= quitTs);
+    const cravings = S.events.filter((e) => e.type === 'craving' && e.ts >= quitTs);
+    const lastSlip = slips.reduce((m, e) => Math.max(m, e.ts), 0);
+    const streakStart = Math.max(quitTs, lastSlip);
+    const streakHours = Math.max(0, (t - streakStart) / 36e5);
+    const saved = Math.max(0, elapsed * daily - slips.length * habitDaily);
+    const minsPerDay = (cig ? S.packs * 20 * 6 : 0) + (alc ? S.drinks * 15 : 0);
+    const hours = elapsed * minsPerDay / 60;
+    const pct = S.goalAmt > 0 ? Math.min(100, Math.round(saved / S.goalAmt * 100)) : 0;
+    const weekStart = t - 7 * DAY;
+    const weekDays = Math.min(7, elapsed);
+    const weekSlips = slips.filter((e) => e.ts >= weekStart).length;
+    return {
+      cig, alc, packPrice, habitDaily, daily, elapsed, saved, hours, pct, streakHours,
+      streakDays: Math.floor(streakHours / 24), slips, cravings, quitTs, future: quitTs > t,
+      week: {
+        saved: Math.max(0, weekDays * daily - weekSlips * habitDaily),
+        hours: weekDays * minsPerDay / 60,
+        cravings: cravings.filter((e) => e.ts >= weekStart).length,
+        slips: weekSlips
+      }
+    };
+  }
+
+  function dur(hours) {
+    if (hours < 1) return Math.max(1, Math.round(hours * 60)) + ' min';
+    if (hours < 48) return Math.round(hours) + ' hrs';
+    const d = Math.round(hours / 24);
+    return d < 60 ? d + ' days' : d < 730 ? Math.round(d / 30.4) + ' months' : Math.round(d / 365) + ' years';
+  }
+
+  const icons = {
+    today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    health: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+    history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    report: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>',
+    test: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>'
+  };
+
+  const stepper = (label, key, val, sub) => `
+    <div class="stepper"><div class="stack" style="gap:2px"><span>${label}</span>${sub ? `<span class="small muted">${sub}</span>` : ''}</div>
+      <div class="ctl"><button type="button" data-step="${key}" data-dir="-1" aria-label="Decrease ${label}">−</button>
+      <output>${val}</output>
+      <button type="button" data-step="${key}" data-dir="1" aria-label="Increase ${label}">+</button></div></div>`;
+
+  function viewSetup() {
+    const c = calc();
+    return `
+      <div class="stack" style="gap:6px">
+        <span class="eyebrow">Quit ROI · test version</span>
+        <h1>What is quitting worth to you?</h1>
+        <p class="muted">Answer a few questions and see your return in dollars, hours and health. Your answers stay on this device.</p>
+      </div>
+      <fieldset><legend>What are you quitting?</legend>
+        <div class="chips">${[['cig', 'Cigarettes'], ['alc', 'Alcohol'], ['both', 'Both']].map(([k, l]) => `<button type="button" class="chip" data-set="habit" data-val="${k}" aria-pressed="${S.habit === k}">${l}</button>`).join('')}</div>
+      </fieldset>
+      ${c.cig ? `
+        <label class="field" for="price">Your pack price
+          <select id="price" data-input="priceId">${PRICES.map((p) => `<option value="${p.id}" ${S.priceId === p.id ? 'selected' : ''}>${p.name}${p.p ? ' — ' + money(p.p) : ''}</option>`).join('')}</select>
+          <span class="hint">2026 average prices. Choose "My own price" to enter what you pay.</span>
+        </label>
+        ${S.priceId === 'custom' ? `<label class="field" for="customPrice">Price per pack ($)<input id="customPrice" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(S.customPrice)}" data-input="customPrice"></label>` : ''}
+        ${stepper('Packs per day', 'packs', S.packs)}` : ''}
+      ${c.alc ? `${stepper('Drinks per day', 'drinks', S.drinks)}${stepper('Price per drink', 'drinkPrice', '$' + S.drinkPrice)}` : ''}
+      <label class="field" for="quitDate">Quit date
+        <input id="quitDate" type="date" value="${esc(S.quitDate)}" data-input="quitDate">
+        <span class="hint">Pick today, a past date, or a planned date.</span>
+      </label>
+      <label class="field" for="extras">Hidden costs per month ($)
+        <input id="extras" type="number" inputmode="decimal" min="0" step="1" value="${esc(S.extrasMonthly)}" data-input="extrasMonthly">
+        <span class="hint">Tobacco insurance surcharge, lighters, rides home, dental cleanings. Leave at 0 if unsure.</span>
+      </label>
+      <div class="grid2">
+        <label class="field" for="goalName">Saving toward<input id="goalName" type="text" maxlength="40" value="${esc(S.goalName)}" data-input="goalName"></label>
+        <label class="field" for="goalAmt">Goal amount ($)<input id="goalAmt" type="number" inputmode="decimal" min="1" step="1" value="${esc(S.goalAmt)}" data-input="goalAmt"></label>
+      </div>
+      <div class="panel" style="background:var(--accent-soft);border-color:transparent">
+        <span class="small muted">At this pace you keep</span>
+        <span class="num" style="font-size:34px">${money0(c.daily * 365)} a year</span>
+        <span class="small muted">${money(c.daily)} a day</span>
+      </div>
+      <button type="button" class="btn" data-action="finishSetup">${S.setup ? 'Save changes' : 'Start tracking'}</button>`;
+  }
+
+  function viewToday() {
+    const c = calc();
+    const next = MILESTONES.find((m) => c.streakHours < m.h);
+    const t = S.toast;
+    return `
+      <div class="row" style="justify-content:space-between">
+        <span class="eyebrow">${c.future ? 'Quit day ahead' : c.cig ? `Day ${c.streakDays} smoke-free` : `Day ${c.streakDays} alcohol-free`}</span>
+        <button type="button" class="linkbtn" data-action="edit">Edit setup</button>
+      </div>
+      <div class="hero">
+        <span class="muted">You've kept</span>
+        <span class="num big">${money(c.saved)}</span>
+        <span class="muted small">${money(c.daily)} a day · ${money0(c.daily * 365)} a year at this pace</span>
+      </div>
+      ${t ? `<div class="toast ${t.kind === 'slip' ? 'slipnote' : ''}" role="status">${esc(t.text)}</div>` : ''}
+      <div class="grid2">
+        <div class="panel stat"><span class="label">Hours back</span><span class="num val">${Math.round(c.hours)}</span></div>
+        <div class="panel stat"><span class="label">Cravings beaten</span><span class="num val">${c.cravings.length}</span></div>
+      </div>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:baseline"><h3>${esc(S.goalName)}</h3><span class="num">${c.pct}%</span></div>
+        <div class="bar" role="progressbar" aria-valuenow="${c.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progress toward ${esc(S.goalName)}"><span style="width:${c.pct}%"></span></div>
+        <span class="small muted">${c.pct >= 100 ? 'Goal reached. Time to spend it on yourself.' : money(Math.max(0, S.goalAmt - c.saved)) + ' to go of ' + money0(S.goalAmt)}</span>
+      </div>
+      ${c.cig ? `<div class="panel"><span class="stat"><span class="label">Next health milestone</span></span>
+        <span>${next ? `<strong>${next.when}:</strong> ${next.text}` : 'You have reached every milestone listed.'}</span>
+        ${next ? `<span class="small muted">About ${dur(next.h - c.streakHours)} to go</span>` : ''}</div>` : ''}
+      <button type="button" class="btn" data-action="craving">I'm having a craving</button>
+      <button type="button" class="btn slip" data-action="slipAsk">Log a slip</button>`;
+  }
+
+  function viewHealth() {
+    const c = calc();
+    return `
+      <h2>Your body is recovering</h2>
+      <p class="muted">General milestones since your last cigarette. A slip restarts this clock; your savings stay.</p>
+      ${c.cig ? `<div class="panel" style="gap:0">${MILESTONES.map((m) => { const ok = c.streakHours >= m.h; return `<div class="ms ${ok ? 'done' : ''}"><span class="dot" aria-hidden="true">✓</span><div class="stack" style="gap:2px"><span class="small muted"><strong>${m.when}</strong> · ${ok ? 'reached' : 'in ' + dur(m.h - c.streakHours)}</span><span>${m.text}</span></div></div>`; }).join('')}</div>` : ''}
+      ${c.alc ? `<div class="banner">Alcohol recovery milestones (sleep, blood pressure, liver) are coming in a later version.</div>` : ''}
+      <p class="small muted">Based on widely published CDC and American Cancer Society timelines. Everyone recovers differently. This is general information, not medical advice. If you drink heavily every day, talk to a doctor before stopping.</p>`;
+  }
+
+  function viewHistory() {
+    const evs = [...S.events].sort((a, b) => b.ts - a.ts);
+    const fmt = (ts) => new Date(ts).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    return `
+      <h2>History</h2>
+      <p class="muted">Every craving you rode out and every slip, newest first.</p>
+      <div class="panel" style="gap:0">${evs.length ? evs.map((e) => `<div class="ev"><div class="stack" style="gap:2px"><span>${e.type === 'craving' ? 'Craving beaten' : 'Slip logged'}</span><span class="small muted">${fmt(e.ts)}${e.note ? ' · ' + esc(e.note) : ''}</span></div><span class="tag ${e.type === 'slip' ? 'slip' : ''}">${e.type === 'craving' ? 'Craving' : 'Slip'}</span></div>`).join('') : '<p class="muted">Nothing yet. Tap "I\'m having a craving" on Today when one hits.</p>'}</div>
+      <div class="panel" style="background:var(--sunk);border-color:transparent">
+        <h3>Free, confidential support</h3>
+        <span>Quitline (U.S.): <strong>1-800-QUIT-NOW</strong> (1-800-784-8669)</span>
+        <span>SAMHSA National Helpline: <strong>1-800-662-4357</strong></span>
+        <span class="small muted">Veterans can get free quit-smoking support through the VA.</span>
+      </div>`;
+  }
+
+  function viewReport() {
+    const c = calc();
+    const lines = [
+      ['Money kept this week', money(c.week.saved)],
+      ['Hours back this week', Math.round(c.week.hours) + ' hrs'],
+      ['Cravings beaten this week', c.week.cravings],
+      ['Slips this week', c.week.slips],
+      ['Lifetime saved', money(c.saved)],
+      ['Toward ' + S.goalName, c.pct + '%']
+    ];
+    const end = new Date(now()), start = new Date(now() - 6 * DAY);
+    const f = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `
+      <div class="stack" style="gap:4px"><span class="eyebrow">Weekly ROI statement</span><h2>${f(start)} – ${f(end)}</h2></div>
+      <div class="panel"><div class="ledger">
+        ${lines.map(([l, v]) => `<div class="line"><span>${esc(l)}</span><span class="num" style="font-weight:600">${v}</span></div>`).join('')}
+        <div class="line total"><span><strong>Projected 1-year return</strong></span><span class="num" style="font-size:22px;color:var(--accent)">${money0(c.daily * 365)}</span></div>
+      </div></div>
+      <p class="small muted">Estimates: 6 minutes per cigarette, 15 minutes per drink. A slip subtracts one day of your usual spend. Pack prices are 2026 state averages unless you entered your own.</p>`;
+  }
+
+  function viewTest() {
+    const doneCount = TASKS.filter(([k]) => S.tasks[k]).length;
+    if (S.fbText) {
+      return `
+        <h2>Thanks for testing</h2>
+        <p class="muted">${FEEDBACK_TO ? `Copy your feedback and send it to <strong>${esc(FEEDBACK_TO)}</strong>.` : 'Copy your feedback and send it to the person who invited you to test.'}</p>
+        <label class="field" for="fbout">Your feedback<textarea id="fbout" class="copybox" readonly>${esc(S.fbText)}</textarea></label>
+        <button type="button" class="btn" data-action="copyFb">Copy feedback</button>
+        <span id="copyMsg" class="small muted" role="status"></span>
+        <button type="button" class="btn ghost" data-action="editFb">Edit my answers</button>`;
+    }
+    const fb = S.fb || {};
+    return `
+      <div class="stack" style="gap:4px"><span class="eyebrow">For testers</span><h2>Try these, then tell us how it went</h2></div>
+      <div class="panel" style="gap:0">
+        <span class="small muted">${doneCount} of ${TASKS.length} done</span>
+        ${TASKS.map(([k, l]) => `<div class="task ${S.tasks[k] ? 'done' : ''}"><span class="dot" aria-hidden="true">✓</span><span class="t">${l}</span><span class="visually-hidden" style="position:absolute;left:-9999px">${S.tasks[k] ? 'done' : 'not done'}</span></div>`).join('')}
+      </div>
+      <div class="panel">
+        <h3>Skip ahead in time</h3>
+        <p class="small muted">See how savings and milestones grow without waiting. ${S.offsetDays ? `Currently ${S.offsetDays} days ahead.` : ''}</p>
+        <div class="chips">
+          <button type="button" class="chip" data-skip="1">+1 day</button>
+          <button type="button" class="chip" data-skip="7">+1 week</button>
+          <button type="button" class="chip" data-skip="30">+1 month</button>
+          <button type="button" class="chip" data-skip="0">Back to today</button>
+        </div>
+      </div>
+      <form class="panel" id="fbForm" novalidate>
+        <h3>Your feedback</h3>
+        <fieldset><legend>How useful would this app be to you?</legend>
+          <div class="chips">${[1, 2, 3, 4, 5].map((n) => `<label class="chip" style="display:inline-flex;align-items:center;gap:6px"><input type="radio" name="rating" value="${n}" ${String(fb.rating) === String(n) ? 'checked' : ''}> ${n}</label>`).join('')}</div>
+          <span class="small muted">1 = not useful, 5 = very useful</span>
+        </fieldset>
+        <label class="field" for="fbLike">What did you find most motivating?<textarea id="fbLike" name="like">${esc(fb.like)}</textarea></label>
+        <label class="field" for="fbConfuse">What was confusing or hard to use?<textarea id="fbConfuse" name="confuse">${esc(fb.confuse)}</textarea></label>
+        <label class="field" for="fbMissing">What's missing that would make you use it daily?<textarea id="fbMissing" name="missing">${esc(fb.missing)}</textarea></label>
+        <label class="field" for="fbPay">Would you pay for the full version?
+          <select id="fbPay" name="pay">${['', 'No, only if free', 'Yes, $1–3 per month', 'Yes, $4–6 per month', 'Yes, a one-time purchase'].map((o) => `<option value="${o}" ${fb.pay === o ? 'selected' : ''}>${o || 'Choose one'}</option>`).join('')}</select></label>
+        <button type="submit" class="btn">Prepare my feedback</button>
+      </form>
+      <button type="button" class="btn ghost" data-action="resetAsk">Start over and clear my data</button>
+      ${storageOk ? '' : '<div class="banner">This browser is not saving your data, so it will reset when you close the page.</div>'}`;
+  }
+
+  const VIEWS = { today: viewToday, health: viewHealth, history: viewHistory, report: viewReport, test: viewTest };
+
+  function render() {
+    const app = document.getElementById('app');
+    const tabs = document.getElementById('tabs');
+    if (!S.setup || S.tab === 'setup') {
+      app.innerHTML = viewSetup();
+      tabs.hidden = true;
+    } else {
+      if (S.tab === 'health') done('health');
+      if (S.tab === 'report') done('report');
+      app.innerHTML = (S.offsetDays ? `<div class="banner" role="note">Tester mode: viewing ${S.offsetDays} day${S.offsetDays > 1 ? 's' : ''} ahead. <button type="button" class="linkbtn" data-skip="0">Back to today</button></div>` : '') + VIEWS[S.tab]();
+      tabs.hidden = false;
+      tabs.innerHTML = [['today', 'Today'], ['health', 'Health'], ['history', 'History'], ['report', 'Report'], ['test', 'Test']]
+        .map(([k, l]) => `<button type="button" data-tab="${k}" ${S.tab === k ? 'aria-current="page"' : ''}>${icons[k]}<span>${l}</span></button>`).join('');
+    }
+    save();
+  }
+
+  function overlay(html) { const o = document.getElementById('overlay'); o.innerHTML = html ? `<div class="overlay" role="dialog" aria-modal="true">${html}</div>` : ''; if (html) { const f = o.querySelector('button'); f && f.focus(); } }
+
+  let timer = null;
+  function openCoach() {
+    let left = 60;
+    const draw = () => overlay(`<div class="sheet">
+        <span class="eyebrow">Craving coach</span>
+        <h2>Breathe with the circle</h2>
+        <div class="breath" aria-hidden="true"><span id="cd">${left}</span></div>
+        <p class="muted">In for 4, out for 6. Most cravings fade within a few minutes. This one would cost you ${money(calc().habitDaily)} today.</p>
+        <button type="button" class="btn" data-action="beat">I beat it</button>
+        <button type="button" class="btn slip" data-action="slipFromCoach">I slipped</button>
+        <button type="button" class="linkbtn" data-action="closeCoach">Close</button></div>`);
+    draw();
+    clearInterval(timer);
+    timer = setInterval(() => { left = Math.max(0, left - 1); const el = document.getElementById('cd'); if (el) el.textContent = left; if (!left) clearInterval(timer); }, 1000);
+  }
+
+  function slipAsk() {
+    overlay(`<div class="sheet">
+      <h2>Log a slip?</h2>
+      <p class="muted">Your streak restarts, but everything you've saved stays. One slip is a data point, not a failure.</p>
+      <label class="field" for="slipNote" style="width:100%;text-align:left">What triggered it? (optional)<input id="slipNote" type="text" maxlength="80" placeholder="Stress at work, a party…"></label>
+      <button type="button" class="btn slip" data-action="slipConfirm">Log the slip</button>
+      <button type="button" class="btn ghost" data-action="closeCoach">Cancel</button></div>`);
+  }
+
+  function addEvent(type, note) {
+    S.events.push({ type, ts: now(), note: note || '' });
+    if (S.events.length > 500) S.events = S.events.slice(-500);
+  }
+
+  document.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.tab) { S.tab = b.dataset.tab; S.toast = null; render(); window.scrollTo(0, 0); return; }
+    if (b.dataset.set) { S[b.dataset.set] = b.dataset.val; render(); return; }
+    if (b.dataset.step) {
+      const k = b.dataset.step, d = Number(b.dataset.dir);
+      const lim = { packs: [0.5, 4, 0.5], drinks: [1, 20, 1], drinkPrice: [1, 30, 1] }[k];
+      S[k] = Math.min(lim[1], Math.max(lim[0], Math.round((S[k] + d * lim[2]) * 10) / 10));
+      render(); return;
+    }
+    if (b.dataset.skip !== undefined) {
+      const n = Number(b.dataset.skip);
+      S.offsetDays = n === 0 ? 0 : S.offsetDays + n;
+      if (n) done('skip');
+      S.toast = null; render(); return;
+    }
+    const a = b.dataset.action;
+    if (a === 'finishSetup') {
+      if (!S.quitDate) { alertField('quitDate', 'Choose a quit date.'); return; }
+      S.setup = true; S.tab = 'today'; done('setup'); render(); window.scrollTo(0, 0);
+    } else if (a === 'edit') { S.tab = 'setup'; render(); window.scrollTo(0, 0); }
+    else if (a === 'craving') { openCoach(); }
+    else if (a === 'beat') {
+      clearInterval(timer); overlay(''); addEvent('craving'); done('craving');
+      const c = calc();
+      S.toast = { kind: 'win', text: `Craving beaten. That's ${c.cravings.length} so far, and ${money(c.habitDaily)} stays toward ${S.goalName}.` };
+      S.tab = 'today'; render();
+    } else if (a === 'slipFromCoach' || a === 'slipAsk') { clearInterval(timer); slipAsk(); }
+    else if (a === 'slipConfirm') {
+      const note = (document.getElementById('slipNote') || {}).value || '';
+      overlay(''); addEvent('slip', note.trim()); done('slip');
+      const c = calc();
+      S.toast = { kind: 'slip', text: `Slip logged. Your streak restarts today, and you're still ${money(c.saved)} ahead overall. Tomorrow counts.` };
+      S.tab = 'today'; render();
+    } else if (a === 'closeCoach') { clearInterval(timer); overlay(''); }
+    else if (a === 'copyFb') {
+      const box = document.getElementById('fbout'); const msg = document.getElementById('copyMsg');
+      try { await navigator.clipboard.writeText(S.fbText); msg.textContent = 'Copied.'; }
+      catch (e) { box.focus(); box.select(); msg.textContent = 'Select the text above and copy it.'; }
+    } else if (a === 'editFb') { S.fbText = ''; render(); }
+    else if (a === 'resetAsk') {
+      overlay(`<div class="sheet"><h2>Clear everything?</h2><p class="muted">This deletes your setup, history and feedback on this device.</p>
+        <button type="button" class="btn slip" data-action="resetYes">Clear my data</button>
+        <button type="button" class="btn ghost" data-action="closeCoach">Keep my data</button></div>`);
+    } else if (a === 'resetYes') { overlay(''); S = fresh(); render(); window.scrollTo(0, 0); }
+  });
+
+  function alertField(id, text) { const el = document.getElementById(id); if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); } }
+
+  document.addEventListener('input', (ev) => {
+    const k = ev.target.dataset.input;
+    if (!k) return;
+    let v = ev.target.value;
+    if (['customPrice', 'extrasMonthly', 'goalAmt'].includes(k)) v = Math.max(0, Number(v) || 0);
+    S[k] = v;
+    save();
+    if (k === 'priceId') render();
+    else {
+      const c = calc(); const p = document.querySelector('.panel .num');
+      if (p && (!S.setup || S.tab === 'setup')) { p.textContent = money0(c.daily * 365) + ' a year'; const s = p.nextElementSibling; if (s) s.textContent = money(c.daily) + ' a day'; }
+    }
+  });
+  document.addEventListener('change', (ev) => { if (ev.target.dataset.input === 'priceId') render(); });
+
+  document.addEventListener('submit', (ev) => {
+    if (ev.target.id !== 'fbForm') return;
+    ev.preventDefault();
+    const f = new FormData(ev.target);
+    S.fb = { rating: f.get('rating') || '', like: f.get('like') || '', confuse: f.get('confuse') || '', missing: f.get('missing') || '', pay: f.get('pay') || '' };
+    const c = calc();
+    const habit = { cig: 'Cigarettes', alc: 'Alcohol', both: 'Cigarettes and alcohol' }[S.habit];
+    S.fbText = [
+      'QUIT ROI TRACKER — TESTER FEEDBACK',
+      'Date: ' + new Date().toLocaleDateString('en-US'),
+      'Usefulness (1-5): ' + (S.fb.rating || 'not answered'),
+      'Most motivating: ' + (S.fb.like || '-'),
+      'Confusing or hard: ' + (S.fb.confuse || '-'),
+      'Missing: ' + (S.fb.missing || '-'),
+      'Would pay: ' + (S.fb.pay || 'not answered'),
+      '',
+      'Features tried: ' + (TASKS.filter(([k]) => S.tasks[k]).map(([, l]) => l).join('; ') || 'none'),
+      'Habit tracked: ' + habit,
+      'Cravings logged: ' + c.cravings.length + ' · Slips logged: ' + c.slips.length
+    ].join('\n');
+    done('feedback');
+    render(); window.scrollTo(0, 0);
+  });
+
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && document.querySelector('.overlay')) { clearInterval(timer); overlay(''); } });
+
+  render();
+})();
+</script>
+</body>
+</html>
