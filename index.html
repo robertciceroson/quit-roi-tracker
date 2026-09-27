@@ -43,7 +43,7 @@ body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size
 *{box-sizing:border-box}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.app{max-width:460px;margin:0 auto;padding-block:20px 110px;display:flex;flex-direction:column;gap:16px}
+.app{max-width:460px;margin:0 auto;padding-block:20px 124px;display:flex;flex-direction:column;gap:16px}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-0.01em}
 h1{font-size:30px;line-height:1.1;font-weight:700}
 h2{font-size:24px;line-height:1.15;font-weight:700}
@@ -104,9 +104,9 @@ label.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size
 .task.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .task.done span.t{color:var(--muted);text-decoration:line-through}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px, calc((100% - 460px) / 2)) calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));z-index:5}
-nav.tabs button{min-height:52px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:500;color:var(--muted)}
-nav.tabs button svg{width:22px;height:22px}
-nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:700}
+nav.tabs button{min-height:58px;background:none;border:none;border-top:3px solid transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:15px;font-weight:700;color:var(--ink);opacity:.72}
+nav.tabs button svg{width:25px;height:25px;stroke-width:2.4}
+nav.tabs button[aria-current="page"]{color:var(--accent);opacity:1;border-top-color:var(--accent)}
 .overlay{position:fixed;inset:0;background:rgba(6,14,11,.55);display:grid;place-items:center;padding:16px;z-index:10}
 .sheet{background:var(--surface);border-radius:22px;padding:24px 20px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
 .breath{width:150px;height:150px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;position:relative}
