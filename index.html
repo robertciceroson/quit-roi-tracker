@@ -137,13 +137,23 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     { id: 'NY', name: 'New York', p: 14.83 },
     { id: 'custom', name: 'My own price' }
   ];
+  // Smoking milestones, from CDC "Benefits of Quitting Smoking" and American Cancer Society
+  // "Health Benefits of Quitting Smoking Over Time" (both checked Sep 27, 2026). h = hours at the start of each window.
   const MILESTONES = [
-    { h: 1/3, when: '20 minutes', text: 'Heart rate and blood pressure begin to drop.' },
-    { h: 12, when: '12 hours', text: 'Carbon monoxide in the blood returns to normal.' },
-    { h: 24*14, when: '2 weeks to 3 months', text: 'Circulation and lung function start to improve.' },
-    { h: 24*30, when: '1 to 9 months', text: 'Coughing and shortness of breath ease.' },
-    { h: 24*365, when: '1 year', text: 'Added risk of heart disease is about half that of a smoker.' },
-    { h: 24*365*5, when: '5 years', text: 'Stroke risk keeps falling toward that of a non-smoker.' }
+    { h: 1/3, when: 'Within minutes', text: 'Your heart rate drops.' },
+    { h: 24, when: '24 hours', text: 'Nicotine in your blood drops to zero.' },
+    { h: 72, when: 'A few days', text: 'Carbon monoxide in your blood drops to the level of someone who doesn\u2019t smoke.' },
+    { h: 24*30, when: '1 to 12 months', text: 'Coughing and shortness of breath decrease.' },
+    { h: 24*365, when: '1 to 2 years', text: 'Your risk of heart attack drops sharply.' },
+    { h: 24*365*3, when: '3 to 6 years', text: 'Your added risk of coronary heart disease drops by half.' },
+    { h: 24*365*5, when: '5 to 10 years', text: 'Your added risk of mouth, throat and voice box cancers drops by half, and your risk of stroke decreases.' },
+    { h: 24*365*10, when: '10 to 15 years', text: 'Your added risk of lung cancer drops by half, and your risk of bladder, esophagus and kidney cancers decreases.' },
+    { h: 24*365*15, when: '15 years', text: 'Your risk of coronary heart disease drops close to that of someone who doesn\u2019t smoke.' },
+    { h: 24*365*20, when: '20 years', text: 'Your risk of mouth, throat, voice box and pancreatic cancers drops close to that of someone who doesn\u2019t smoke.' }
+  ];
+  const HEALTH_SOURCES = [
+    ['CDC: Benefits of Quitting Smoking', 'https://www.cdc.gov/tobacco/about/benefits-of-quitting.html'],
+    ['American Cancer Society: Health Benefits of Quitting Smoking Over Time', 'https://www.cancer.org/cancer/risk-prevention/tobacco/benefits-of-quitting-smoking-over-time.html']
   ];
   const TASKS = [
     ['setup', 'Set up your habit and quit date'],
@@ -158,7 +168,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
   const isoDay = (d) => { const z = new Date(d); z.setMinutes(z.getMinutes() - z.getTimezoneOffset()); return z.toISOString().slice(0, 10); };
   const fresh = () => ({
     setup: false, habit: 'cig', priceId: 'US', customPrice: 10, packs: 1, drinks: 3, drinkPrice: 8,
-    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500, investRate: 8,
+    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500, investRate: 8, lastBackup: 0,
     events: [], offsetDays: 0, tasks: {}, tab: 'today', toast: null, fb: null, fbText: ''
   });
 
@@ -286,7 +296,9 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <span class="small muted">${money(c.daily)} a day</span>
         <span class="small muted" id="etaLine">${esc(S.goalName)}: ${goalEta(c)}</span>
       </div>
-      <button type="button" class="btn" data-action="finishSetup">${S.setup ? 'Save changes' : 'Start tracking'}</button>`;
+      <button type="button" class="btn" data-action="finishSetup">${S.setup ? 'Save changes' : 'Start tracking'}</button>
+      ${S.setup ? '' : '<button type="button" class="linkbtn" data-action="restoreOpen" style="align-self:center">Switching devices? Restore a backup</button>'}
+      ${footer()}`;
   }
 
   function viewToday() {
@@ -305,6 +317,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <span class="small" style="color:var(--accent);font-weight:600">Invested at ${S.investRate}% a year: about ${money0(fv(c.daily, S.investRate, 10))} in 10 years</span>
       </div>
       ${t ? `<div class="toast ${t.kind === 'slip' ? 'slipnote' : ''}" role="status">${esc(t.text)}</div>` : ''}
+      ${(!S.lastBackup || now() - S.lastBackup > 7 * DAY) && S.events.length + Math.floor(c.elapsed) >= 1 ? `<div class="banner row" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><span>${S.lastBackup ? 'Your last backup is over a week old.' : 'Your progress is saved only on this device.'}</span><button type="button" class="linkbtn" data-action="backupOpen" style="min-height:32px">Back it up</button></div>` : ''}
       <div class="grid2">
         <div class="panel stat"><span class="label">Hours back</span><span class="num val">${Math.round(c.hours)}</span></div>
         <div class="panel stat"><span class="label">Cravings beaten</span><span class="num val">${c.cravings.length}</span></div>
@@ -328,7 +341,11 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
       <p class="muted">General milestones since your last cigarette. A slip restarts this clock; your savings stay.</p>
       ${c.cig ? `<div class="panel" style="gap:0">${MILESTONES.map((m) => { const ok = c.streakHours >= m.h; return `<div class="ms ${ok ? 'done' : ''}"><span class="dot" aria-hidden="true">✓</span><div class="stack" style="gap:2px"><span class="small muted"><strong>${m.when}</strong> · ${ok ? 'reached' : 'in ' + dur(m.h - c.streakHours)}</span><span>${m.text}</span></div></div>`; }).join('')}</div>` : ''}
       ${c.alc ? `<div class="banner">Alcohol recovery milestones (sleep, blood pressure, liver) are coming in a later version.</div>` : ''}
-      <p class="small muted">Based on widely published CDC and American Cancer Society timelines. Everyone recovers differently. This is general information, not medical advice. If you drink heavily every day, talk to a doctor before stopping.</p>`;
+      <div class="panel" style="background:var(--sunk);border-color:transparent;gap:6px">
+        <h3>Sources</h3>
+        ${HEALTH_SOURCES.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener" style="font-size:14px">${t}</a>`).join('')}
+        <span class="small muted">Milestones are averages for people who quit smoking. Everyone recovers differently. This is general information, not medical advice. If you drink heavily every day, talk to a doctor before stopping.</span>
+      </div>`;
   }
 
   function viewHistory() {
@@ -343,7 +360,14 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <span>Quitline (U.S.): <a class="tel" href="tel:18007848669">1-800-QUIT-NOW</a> (1-800-784-8669)</span>
         <span>SAMHSA National Helpline: <a class="tel" href="tel:18006624357">1-800-662-4357</a></span>
         <span class="small muted">Veterans can get free quit-smoking support through the VA.</span>
-      </div>`;
+      </div>
+      <div class="panel">
+        <h3>Your data</h3>
+        <p class="small muted">Everything is saved only in this browser. ${S.lastBackup ? 'Last backup: ' + new Date(S.lastBackup).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '.' : 'You haven\'t made a backup yet.'}</p>
+        <button type="button" class="btn" data-action="backupOpen">Back up my progress</button>
+        <button type="button" class="btn ghost" data-action="restoreOpen">Restore a backup</button>
+      </div>
+      ${footer()}`;
   }
 
   function howCalc(c) {
@@ -440,15 +464,128 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <button type="submit" class="btn">Prepare my feedback</button>
       </form>
       <button type="button" class="btn ghost" data-action="resetAsk">Start over and clear my data</button>
-      ${storageOk ? '' : '<div class="banner">This browser is not saving your data, so it will reset when you close the page.</div>'}`;
+      ${storageOk ? '' : '<div class="banner">This browser is not saving your data, so it will reset when you close the page.</div>'}
+      ${footer()}`;
   }
+
+  // ---------- Backup and restore ----------
+  const toB64 = (str) => btoa(unescape(encodeURIComponent(str)));
+  const fromB64 = (b64) => decodeURIComponent(escape(atob(b64.replace(/\s+/g, ''))));
+  function backupJson() {
+    const data = Object.assign({}, S, { toast: null, fbText: '', tab: 'today' });
+    return JSON.stringify({ app: 'quit-roi-tracker', v: 1, exportedAt: new Date().toISOString(), data });
+  }
+  // Inside claude.ai the page must save files through the downloads capability; on a normal website a plain download works.
+  const inClaude = !!(window.claude && window.claude.use);
+  let downloadsApi = null;
+  if (inClaude) { Promise.resolve(window.claude.use('downloads')).then((d) => { downloadsApi = d; }).catch(() => {}); }
+  function backupCode() { return 'QROI1.' + toB64(backupJson()); }
+  function parseBackup(text) {
+    let t = String(text || '').trim();
+    if (!t) throw new Error('empty');
+    if (t.startsWith('QROI1.')) t = fromB64(t.slice(6));
+    const obj = JSON.parse(t);
+    if (!obj || obj.app !== 'quit-roi-tracker' || !obj.data || typeof obj.data !== 'object') throw new Error('not ours');
+    return obj;
+  }
+  function applyBackup(obj) {
+    const d = obj.data;
+    S = Object.assign(fresh(), d, { toast: null, fbText: '', tab: 'today', setup: true });
+    if (!Array.isArray(S.events)) S.events = [];
+    S.toast = { kind: 'win', text: 'Backup restored from ' + new Date(obj.exportedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '. Your progress is back.' };
+  }
+
+  function backupSheet(msg) {
+    overlay(`<div class="sheet" style="text-align:left;align-items:stretch">
+      <h2>Back up your progress</h2>
+      <p class="muted">Your progress is saved only in this browser. Keep a backup so you can restore it if you clear your browser or switch phones.</p>
+      <button type="button" class="btn" data-action="saveBackupFile">Save backup file</button>
+      <button type="button" class="btn ghost" data-action="copyBackupCode">Copy backup code</button>
+      <span class="small muted">The code is a long line of text you can paste into a note or email to yourself.</span>
+      <span id="backupMsg" class="small" role="status">${msg || ''}</span>
+      <button type="button" class="linkbtn" data-action="closeCoach" style="align-self:center">Done</button></div>`);
+  }
+  function restoreSheet(err) {
+    overlay(`<div class="sheet" style="text-align:left;align-items:stretch">
+      <h2>Restore a backup</h2>
+      <p class="muted">Restoring replaces the progress saved in this browser.</p>
+      <label class="field" for="restoreFile">Choose a backup file
+        <input id="restoreFile" type="file" accept=".json,application/json,text/plain"></label>
+      <label class="field" for="restoreCode">Or paste your backup code
+        <textarea id="restoreCode" placeholder="QROI1.…" style="min-height:90px"></textarea></label>
+      ${err ? `<div class="toast slipnote" role="alert">${esc(err)}</div>` : ''}
+      <button type="button" class="btn" data-action="doRestore">Restore</button>
+      <button type="button" class="btn ghost" data-action="closeCoach">Cancel</button></div>`);
+  }
+
+  // ---------- Privacy policy and terms ----------
+  let page = /^#(privacy|terms)$/.test(location.hash) ? location.hash.slice(1) : null;
+  const EFFECTIVE = 'September 27, 2026';
+  const CONTACT = FEEDBACK_TO || 'the app owner';
+  function footer() {
+    return `<div class="row small muted" style="justify-content:center;gap:4px;flex-wrap:wrap">
+      <button type="button" class="linkbtn" data-action="openPage" data-page="privacy">Privacy policy</button><span aria-hidden="true">·</span>
+      <button type="button" class="linkbtn" data-action="openPage" data-page="terms">Terms of use</button></div>`;
+  }
+  const sec = (h, body) => `<section class="stack" style="gap:6px"><h3>${h}</h3>${body}</section>`;
+  const para = (t) => `<p style="font-size:15px;line-height:1.55">${t}</p>`;
+  const list = (items) => `<ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.5">${items.map((i) => `<li>${i}</li>`).join('')}</ul>`;
+  const pageHead = (title) => `<button type="button" class="linkbtn" data-action="closePage" style="align-self:flex-start;padding:0">← Back to the app</button>
+      <div class="stack" style="gap:4px"><h1>${title}</h1><span class="small muted">Effective ${EFFECTIVE}</span></div>`;
+
+  function viewPrivacy() {
+    return pageHead('Privacy policy') + `<div class="panel" style="gap:18px">
+      ${para('Quit ROI Tracker (the "app") is a test version run by Robert Son. This policy explains what happens to the information you enter. The short version: your data stays on your device, and we never see it unless you choose to send it to us.')}
+      ${sec('What you enter', list([
+        'What you are quitting, how much you usually use, your prices, quit date and time, hidden costs, savings goal and investment return rate.',
+        'Cravings and slips you log, including any trigger notes you type.',
+        'Your answers to the tester feedback form.'
+      ]))}
+      ${sec('Where it is stored', para('Everything is stored only in your web browser’s local storage on the device you are using. There are no accounts, and the app does not send your data to any server we run. If you clear your browser data, use a private window or switch devices, your data will not carry over unless you restore a backup.'))}
+      ${sec('What we can see', para('Nothing, unless you choose to share it. When you tap Email my feedback or send your copied feedback, we receive what you send: your feedback answers, the features you tried, the habit you tracked, and your craving and slip counts. It does not include your prices, dates, notes or savings.'))}
+      ${sec('Backups', para('Backup files and backup codes contain all of your app data. They are created on your device and go only where you save or send them. Treat them like any personal record.'))}
+      ${sec('Services the app uses', list([
+        'The app is hosted on GitHub Pages. GitHub may log basic technical information, such as your IP address, when your browser loads the app. See GitHub’s privacy statement for details.',
+        'Fonts load from Google Fonts, which may receive your IP address and browser details when the page loads.',
+        'The app uses no advertising, no analytics and no tracking cookies, and we never sell or share your data.'
+      ]))}
+      ${sec('Health information', para('The app shows general health information and is not a healthcare provider. What you enter is not a medical record and is not covered by HIPAA.'))}
+      ${sec('Age', para('The app is intended for adults 18 and older, and for alcohol tracking, adults of legal drinking age where they live.'))}
+      ${sec('Your choices', list([
+        'Delete everything at any time: Test tab, then Start over and clear my data, or clear this site’s data in your browser settings.',
+        'Ask us to delete feedback you emailed by writing to ' + esc(CONTACT) + '.'
+      ]))}
+      ${sec('Changes and contact', para('If this policy changes, we will update the effective date above. Questions: ' + esc(CONTACT) + '.'))}
+    </div>` + footer();
+  }
+
+  function viewTerms() {
+    return pageHead('Terms of use') + `<div class="panel" style="gap:18px">
+      ${para('By using Quit ROI Tracker (the "app"), you agree to these terms. If you do not agree, please do not use the app.')}
+      ${sec('A test version', para('The app is an early test version provided free of charge, as is and as available. Features may change or stop working, and data may be lost. Keep a backup of anything you want to keep.'))}
+      ${sec('Not medical advice', para('Health milestones are general averages from public health sources and may not apply to you. The app does not diagnose, treat or replace care from a doctor or other qualified professional. Stopping alcohol suddenly after heavy daily drinking can be dangerous: talk to a doctor first. In an emergency, call 911.'))}
+      ${sec('Not financial advice', para('Savings, projections and investment figures are estimates and illustrations based on the numbers you enter and the rate you choose. They are not financial, investment or tax advice, and real returns vary according to market volatility and can be negative in some years.'))}
+      ${sec('Your responsibilities', list([
+        'Use the app only if you are 18 or older, and for alcohol tracking, of legal drinking age where you live.',
+        'You are responsible for the information you enter and for decisions you make using the app.',
+        'Do not misuse the app, try to break it or use it for anything unlawful.'
+      ]))}
+      ${sec('Support resources', para('Quitline: 1-800-QUIT-NOW (1-800-784-8669). SAMHSA National Helpline: 1-800-662-4357. These services are run by others; we are not affiliated with them.'))}
+      ${sec('Limitation of liability', para('To the fullest extent allowed by law, the app’s owner is not liable for any indirect, incidental or consequential damages, or for any loss of data, arising from your use of the app.'))}
+      ${sec('Changes and contact', para('We may update these terms and will change the effective date when we do. These terms are governed by the laws of the Commonwealth of Virginia. Questions: ' + esc(CONTACT) + '.'))}
+    </div>` + footer();
+  }
+  const PAGES = { privacy: viewPrivacy, terms: viewTerms };
 
   const VIEWS = { today: viewToday, health: viewHealth, history: viewHistory, report: viewReport, test: viewTest };
 
   function render() {
     const app = document.getElementById('app');
     const tabs = document.getElementById('tabs');
-    if (!S.setup || S.tab === 'setup') {
+    if (page && PAGES[page]) {
+      app.innerHTML = PAGES[page]();
+      tabs.hidden = true;
+    } else if (!S.setup || S.tab === 'setup') {
       app.innerHTML = viewSetup();
       tabs.hidden = true;
     } else {
@@ -540,6 +677,43 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <button type="button" class="btn slip" data-action="resetYes">Clear my data</button>
         <button type="button" class="btn ghost" data-action="closeCoach">Keep my data</button></div>`);
     } else if (a === 'resetYes') { overlay(''); S = fresh(); render(); window.scrollTo(0, 0); }
+    else if (a === 'backupOpen') { backupSheet(); }
+    else if (a === 'restoreOpen') { restoreSheet(); }
+    else if (a === 'saveBackupFile') {
+      const m = document.getElementById('backupMsg');
+      const filename = 'quit-roi-backup-' + isoDay(Date.now()) + '.json';
+      if (inClaude) {
+        if (!downloadsApi) { if (m) m.textContent = 'Saving files isn\'t available here. Use Copy backup code instead.'; return; }
+        try { await downloadsApi.save({ filename, data: backupJson() }); S.lastBackup = Date.now(); save(); if (m) m.textContent = 'Backup file saved.'; }
+        catch (e) { if (m) m.textContent = e && e.code === 'declined' ? 'Save cancelled.' : 'The file couldn\'t be saved here. Use Copy backup code instead.'; }
+        return;
+      }
+      try {
+        const blob = new Blob([backupJson()], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = filename;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        S.lastBackup = Date.now(); save();
+        if (m) m.textContent = 'Backup file saved to your downloads.';
+      } catch (e) { if (m) m.textContent = 'This browser blocked the download. Use Copy backup code instead.'; }
+    } else if (a === 'copyBackupCode') {
+      const code = backupCode(); const m = document.getElementById('backupMsg');
+      try { await navigator.clipboard.writeText(code); S.lastBackup = Date.now(); save(); if (m) m.textContent = 'Backup code copied. Paste it somewhere safe, like a note or an email to yourself.'; }
+      catch (e) {
+        if (m) { m.innerHTML = 'Select and copy this code:<textarea class="copybox" readonly style="min-height:90px;margin-top:6px"></textarea>'; const ta = m.querySelector('textarea'); ta.value = code; ta.focus(); ta.select(); S.lastBackup = Date.now(); save(); }
+      }
+    } else if (a === 'doRestore') {
+      const fileEl = document.getElementById('restoreFile'); const codeEl = document.getElementById('restoreCode');
+      const file = fileEl && fileEl.files && fileEl.files[0];
+      try {
+        const text = file ? await file.text() : (codeEl ? codeEl.value : '');
+        const obj = parseBackup(text);
+        applyBackup(obj); overlay(''); render(); window.scrollTo(0, 0);
+      } catch (e) { restoreSheet(file ? 'That file isn\'t a Quit ROI Tracker backup. Choose the .json file you saved from this app.' : 'That code didn\'t work. Paste the whole code, starting with QROI1.'); }
+    } else if (a === 'openPage') { page = b.dataset.page; render(); window.scrollTo(0, 0); }
+    else if (a === 'closePage') { page = null; try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} render(); window.scrollTo(0, 0); }
   });
 
   function alertField(id, text) { const el = document.getElementById(id); if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); } }

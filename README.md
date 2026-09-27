@@ -12,7 +12,10 @@ This is the **user-testing version**. It runs entirely in the browser as a singl
 - **Slips without shame:** a slip restarts the streak but keeps lifetime savings
 - **Health:** a smoking-recovery milestone timeline with countdowns
 - **History:** every craving and slip, with optional triggers, plus free support lines
-- **Weekly ROI statement:** this week's return and the projected 1-year return
+- **Weekly ROI statement:** this week's return, the projected 1-year return, and a plain-language "How we calculate this" box
+- **If you invested it:** what the savings could grow to over 1–30 years at an adjustable annual return
+- **Backup and restore:** save a backup file or copy a backup code; restore on any device, including from the first screen
+- **Privacy policy and terms:** built into the app (footer links, or open `#privacy` / `#terms` directly)
 - **Tester tools:** a task checklist, skip-ahead time controls, and a feedback form that produces copyable text
 
 ## Run it locally
@@ -33,14 +36,15 @@ To update the app, commit a new `index.html`; Pages redeploys automatically.
 
 ## Privacy
 
-All data stays in the tester's own browser (`localStorage`). Nothing is sent to a server, and clearing site data or using a private window resets the app. Feedback is shared only when a tester copies it and emails it.
+All data stays in the user's own browser (`localStorage`). Nothing is sent to a server. Clearing site data or using a private window resets the app, so users are prompted to keep a backup. Feedback is shared only when a tester emails or copies it. The full policy is in the app: `https://robertciceroson.github.io/quit-roi-tracker/#privacy`. Terms: `#terms`.
 
 ## Data and assumptions
 
 - Pack prices: 2026 state averages from [World Population Review](https://worldpopulationreview.com/state-rankings/cigarette-prices-by-state) (U.S. $10.15, Missouri $8.01, California $11.78, New York $14.83). Testers can enter their own price.
 - Hours back: estimated at 6 minutes per cigarette (20 per pack) and 15 minutes per drink.
 - A slip subtracts one day of the tester's usual spend.
-- Health milestones are draft copy based on widely published CDC and American Cancer Society timelines. Confirm the wording and cite each item before a public launch.
+- Health milestones follow the CDC's [Benefits of Quitting Smoking](https://www.cdc.gov/tobacco/about/benefits-of-quitting.html) and the American Cancer Society's [Health Benefits of Quitting Smoking Over Time](https://www.cancer.org/cancer/risk-prevention/tobacco/benefits-of-quitting-smoking-over-time.html), checked September 27, 2026. Each milestone unlocks at the start of its published time window.
+- Investment figures assume daily savings deposited monthly, compounded monthly, before taxes, fees and inflation. Illustration only.
 
 ## Disclaimer
 
