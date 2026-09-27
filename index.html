@@ -394,7 +394,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <div class="line small muted"><span>Years</span><span style="display:flex;gap:16px"><span style="min-width:92px;text-align:right">You put in</span><span style="min-width:104px;text-align:right">Could grow to</span></span></div>
         ${[1, 5, 10, 20, 30].map((y) => `<div class="line"><span>${y} ${y === 1 ? 'year' : 'years'}</span><span style="display:flex;gap:16px"><span class="muted" style="min-width:92px;text-align:right">${money0(c.daily * 365 * y)}</span><span class="num" style="min-width:104px;text-align:right;${y === 30 ? 'color:var(--accent);font-size:20px' : 'font-weight:600'}">${money0(fv(c.daily, S.investRate, y))}</span></span></div>`).join('')}
       </div></div>
-      <p class="small muted">Illustration only, not financial advice. Assumes you save ${money(c.daily)} a day, deposit it monthly, and earn a steady ${S.investRate}% a year compounded monthly, before taxes, fees and inflation. Real returns vary and can be negative.</p>`;
+      <p class="small muted">Illustration only, not financial advice. Assumes you save ${money(c.daily)} a day, deposit it monthly, and earn a steady ${S.investRate}% a year compounded monthly, before taxes, fees and inflation. Real returns vary according to market volatility and can be negative in some years.</p>`;
   }
 
   function viewTest() {
