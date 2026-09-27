@@ -151,7 +151,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
   const isoDay = (d) => { const z = new Date(d); z.setMinutes(z.getMinutes() - z.getTimezoneOffset()); return z.toISOString().slice(0, 10); };
   const fresh = () => ({
     setup: false, habit: 'cig', priceId: 'US', customPrice: 10, packs: 1, drinks: 3, drinkPrice: 8,
-    quitDate: isoDay(Date.now()), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500,
+    quitDate: isoDay(Date.now()), quitTime: new Date().toTimeString().slice(0, 5), extrasMonthly: 0, goalName: 'Weekend trip', goalAmt: 500,
     events: [], offsetDays: 0, tasks: {}, tab: 'today', toast: null, fb: null, fbText: ''
   });
 
@@ -172,7 +172,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     const packPrice = S.priceId === 'custom' ? Number(S.customPrice) || 0 : pr.p;
     const habitDaily = (cig ? S.packs * packPrice : 0) + (alc ? S.drinks * S.drinkPrice : 0);
     const daily = habitDaily + (Number(S.extrasMonthly) || 0) * 12 / 365;
-    const quitTs = new Date(S.quitDate + 'T00:00:00').getTime();
+    const quitTs = new Date(S.quitDate + 'T' + (S.quitTime || '00:00') + ':00').getTime();
     const t = now();
     const elapsed = Math.max(0, (t - quitTs) / DAY);
     const slips = S.events.filter((e) => e.type === 'slip' && e.ts >= quitTs);
@@ -197,6 +197,18 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         slips: weekSlips
       }
     };
+  }
+
+  function goalEta(c) {
+    const left = S.goalAmt - c.saved;
+    if (left <= 0) return 'Goal reached.';
+    if (c.daily <= 0) return '';
+    const days = left / c.daily;
+    const y = Math.floor(days / 365), m = Math.round((days - y * 365) / 30.4);
+    const parts = [];
+    if (y) parts.push(y + (y === 1 ? ' yr' : ' yrs'));
+    if (m) parts.push(m + ' mo');
+    return 'About ' + (parts.join(' ') || 'less than a month') + ' to go at this pace.';
   }
 
   function dur(hours) {
@@ -243,6 +255,10 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <input id="quitDate" type="date" value="${esc(S.quitDate)}" data-input="quitDate">
         <span class="hint">Pick today, a past date, or a planned date.</span>
       </label>
+      <label class="field" for="quitTime">Time of your last one
+        <input id="quitTime" type="time" value="${esc(S.quitTime)}" data-input="quitTime">
+        <span class="hint">Health milestones count from this moment.</span>
+      </label>
       <label class="field" for="extras">Hidden costs per month ($)
         <input id="extras" type="number" inputmode="decimal" min="0" step="1" value="${esc(S.extrasMonthly)}" data-input="extrasMonthly">
         <span class="hint">Tobacco insurance surcharge, lighters, rides home, dental cleanings. Leave at 0 if unsure.</span>
@@ -255,6 +271,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
         <span class="small muted">At this pace you keep</span>
         <span class="num" style="font-size:34px">${money0(c.daily * 365)} a year</span>
         <span class="small muted">${money(c.daily)} a day</span>
+        <span class="small muted" id="etaLine">${esc(S.goalName)}: ${goalEta(c)}</span>
       </div>
       <button type="button" class="btn" data-action="finishSetup">${S.setup ? 'Save changes' : 'Start tracking'}</button>`;
   }
@@ -265,7 +282,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     const t = S.toast;
     return `
       <div class="row" style="justify-content:space-between">
-        <span class="eyebrow">${c.future ? 'Quit day ahead' : c.cig ? `Day ${c.streakDays} smoke-free` : `Day ${c.streakDays} alcohol-free`}</span>
+        <span class="eyebrow">${c.future ? 'Quit day ahead' : c.cig ? `Day ${c.streakDays + 1} smoke-free` : `Day ${c.streakDays + 1} alcohol-free`}</span>
         <button type="button" class="linkbtn" data-action="edit">Edit setup</button>
       </div>
       <div class="hero">
@@ -281,7 +298,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
       <div class="panel">
         <div class="row" style="justify-content:space-between;align-items:baseline"><h3>${esc(S.goalName)}</h3><span class="num">${c.pct}%</span></div>
         <div class="bar" role="progressbar" aria-valuenow="${c.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progress toward ${esc(S.goalName)}"><span style="width:${c.pct}%"></span></div>
-        <span class="small muted">${c.pct >= 100 ? 'Goal reached. Time to spend it on yourself.' : money(Math.max(0, S.goalAmt - c.saved)) + ' to go of ' + money0(S.goalAmt)}</span>
+        <span class="small muted">${c.pct >= 100 ? 'Goal reached. Time to spend it on yourself.' : money(Math.max(0, S.goalAmt - c.saved)) + ' to go of ' + money0(S.goalAmt) + '. ' + goalEta(c)}</span>
       </div>
       ${c.cig ? `<div class="panel"><span class="stat"><span class="label">Next health milestone</span></span>
         <span>${next ? `<strong>${next.when}:</strong> ${next.text}` : 'You have reached every milestone listed.'}</span>
@@ -492,7 +509,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
     if (k === 'priceId') render();
     else {
       const c = calc(); const p = document.querySelector('.panel .num');
-      if (p && (!S.setup || S.tab === 'setup')) { p.textContent = money0(c.daily * 365) + ' a year'; const s = p.nextElementSibling; if (s) s.textContent = money(c.daily) + ' a day'; }
+      if (p && (!S.setup || S.tab === 'setup')) { p.textContent = money0(c.daily * 365) + ' a year'; const s = p.nextElementSibling; if (s) s.textContent = money(c.daily) + ' a day'; const e = document.getElementById('etaLine'); if (e) e.textContent = S.goalName + ': ' + goalEta(c); }
     }
   });
   document.addEventListener('change', (ev) => { if (ev.target.dataset.input === 'priceId') render(); });
