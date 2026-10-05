@@ -176,6 +176,7 @@ legend{font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
 
   let S;
   try { S = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { S = fresh(); }
+  S.tab = 'today';
   let storageOk = true;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { storageOk = false; } };
 
